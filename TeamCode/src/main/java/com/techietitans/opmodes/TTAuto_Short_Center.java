@@ -104,6 +104,7 @@ public class TTAuto_Short_Center extends TTTeleOp {
             logEnabled = true;
         }
         logEnabled = true;
+        dl = new DataLogger("Dl_TT_Auto_V4");
         telemetry.addData("**** Log Enabled ****", logEnabled);
     }
 
@@ -116,7 +117,6 @@ public class TTAuto_Short_Center extends TTTeleOp {
         shooterInit = shooter.getCurrentPosition();
         if (logEnabled) {
             //Set a new data logger and header of the file
-            dl = new DataLogger("Dl_TT_Auto_V4");
             dl.addField("LoopCounter");
             dl.addField("State");
             dl.addField("Left Motor Position");

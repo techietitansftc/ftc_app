@@ -107,6 +107,7 @@ public class TTAutoV4 extends TTTeleOp {
             logEnabled = true;
         }
         logEnabled = true;
+        dl = new DataLogger("Dl_TT_Auto_V4");
         telemetry.addData("**** Log Enabled ****", logEnabled);
     }
 
@@ -120,7 +121,6 @@ public class TTAutoV4 extends TTTeleOp {
         shooterInit = shooter.getCurrentPosition();
         if (logEnabled) {
             //Set a new data logger and header of the file
-            dl = new DataLogger("Dl_TT_Auto_V4");
             dl.addField("LoopCounter");
             dl.addField("State");
             dl.addField("Left Motor Position");
@@ -203,7 +203,7 @@ public class TTAutoV4 extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 40)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 55 : 40)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -310,6 +310,7 @@ public class TTAutoV4 extends TTTeleOp {
             case 14:
                 //Beacon 1 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.4, -.4, 500, 500)) {
+                    initBeaconPusher();
                     currentState++;
                 }
                 break;
@@ -324,9 +325,10 @@ public class TTAutoV4 extends TTTeleOp {
 
             case 16:
                 // Come back after Beacon 1 push
+                //TODO: At State.. Red 650, Blue 620
                 initBeaconPusher();
                 //TODO: ??? Not sure about encoder count to come back
-                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 620;
+                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 630;
                 if (driveWithEncoders(-.3, -.3, allianceSpecific, allianceSpecific)) {
                     currentState++;
                 }
@@ -436,6 +438,7 @@ public class TTAutoV4 extends TTTeleOp {
             case 25:
                 //Beacon 2 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.2, -.2, 500, 500)) {
+                    initBeaconPusher();
                     currentState++;
                 }
                 break;
@@ -466,7 +469,7 @@ public class TTAutoV4 extends TTTeleOp {
                 break;
             case 29:
                 //5000
-                if (driveWithEncoders(.8, .8, 4700, 4700)) {
+                if (driveWithEncoders(.8, .8, 4000, 4000)) {
                     currentState++;
                 }
                 break;

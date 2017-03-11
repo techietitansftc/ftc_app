@@ -103,6 +103,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
             logEnabled = true;
         }
         logEnabled = true;
+        dl = new DataLogger("Dl_TT_Auto_V4");
         telemetry.addData("**** Log Enabled ****", logEnabled);
     }
 
@@ -115,7 +116,6 @@ public class TTAuto_Short_Side extends TTTeleOp {
         shooterInit = shooter.getCurrentPosition();
         if (logEnabled) {
             //Set a new data logger and header of the file
-            dl = new DataLogger("Dl_TT_Auto_V4");
             dl.addField("LoopCounter");
             dl.addField("State");
             dl.addField("Left Motor Position");
@@ -167,7 +167,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 break;
             case 2:
                 // GO straight for a fixed distance
-                if (driveWithEncoders(.3, .3, 250, 250)) {
+                if (driveWithEncoders(.3, .3, 666, 666)) {
                     currentState++;
                 }
                 break;
@@ -178,7 +178,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 25)) {
+                if (gyroPointTurn(.3, turnDirection, 20)) {
                     currentState++;
                 }
                 break;
@@ -230,14 +230,14 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 75)) {
+                if (gyroPointTurn(.3, turnDirection, 85)) {
                     currentState++;
                 }
                 break;
 
             case 10:
                 // GO straight to Corner Ramp
-                if (driveWithEncoders(.7, .7, 4500,4500)) {
+                if (driveWithEncoders(.7, .7, 4750,4750)) {
                     currentState++;
                 }
                 break;

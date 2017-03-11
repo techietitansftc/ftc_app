@@ -201,7 +201,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 40)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 50 : 40)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
