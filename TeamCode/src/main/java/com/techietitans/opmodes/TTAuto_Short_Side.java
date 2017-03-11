@@ -32,7 +32,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
     int recoveryCount=0;
     int loopCounter =0;
     int shooterInit=0;
-
+    long ballshootTimeInit = 0;
 
     // Colors used in Alliance, resQ beacon and line
     public enum Colors {
@@ -191,22 +191,41 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 break;
 
             case 5:
-                // Shoot....
+                // Shoot the ball
                 shooter.setPower(.6);
-                if ((shooter.getCurrentPosition()-shooterInit)>2500) {
-                shooter.setPower(0);
-                currentState++;
+                if ((shooter.getCurrentPosition() - shooterInit) > 3750) {
+                    shooter.setPower(0);
+                    shooterInit = shooter.getCurrentPosition();
+                    currentState++;
                 }
                 break;
 
             case 6:
+                ball_dropper.setPosition(0);
+                if (ball_dropper.getPosition() == 0) {
+                    currentState++;
+                    ballshootTimeInit = System.currentTimeMillis();
+                }
+                break;
+            case 7:
+                if (System.currentTimeMillis() - ballshootTimeInit > 2000) {
+                    shooter.setPower(.6);
+                    if ((shooter.getCurrentPosition() - shooterInit) > 2500) {
+                        shooter.setPower(0);
+                        shooterInit = shooter.getCurrentPosition();
+                        currentState++;
+                    }
+                }
+                break;
+
+            case 8:
                 // GO straight to shoot..
                 if (driveWithEncoders(.3, .3, 2080,2080)) {
                     currentState++;
                 }
                 break;
 
-            case 7:
+            case 9:
                 //Turn to line up to Corner
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
@@ -216,7 +235,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 }
                 break;
 
-            case 8:
+            case 10:
                 // GO straight to Corner Ramp
                 if (driveWithEncoders(.7, .7, 4500,4500)) {
                     currentState++;

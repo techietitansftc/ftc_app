@@ -8,7 +8,7 @@ import com.techietitans.libraries.DataLogger;
 import com.qualcomm.robotcore.util.Range;
 
 
-@Autonomous(name = "TTAutoV4",group = "TechieTitans")
+@Autonomous(name = "TTAutoV4", group = "TechieTitans")
 public class TTAutoV4 extends TTTeleOp {
 
     int currentState = 0;
@@ -29,10 +29,11 @@ public class TTAutoV4 extends TTTeleOp {
     boolean logEnabled = false;
     long logTime = System.currentTimeMillis();
     boolean colorSensorsDisabled = false;
-    int recoveryCount=0;
-    int loopCounter =0;
-    int shooterInit=0;
+    int recoveryCount = 0;
+    int loopCounter = 0;
+    int shooterInit = 0;
     int allianceSpecific;
+    long ballshootTimeInit = 0;
 
 
     // Colors used in Alliance, resQ beacon and line
@@ -85,6 +86,8 @@ public class TTAutoV4 extends TTTeleOp {
         cs = new AdaFruitCS(hardwareMap, "adaColor", 2 * 0x29);
         cs.initColorSensor();
         isRunning = false;
+
+        ball_dropper.setPosition(90.0 / 255.0);
     }
 
     //*****************************************************************************
@@ -148,7 +151,7 @@ public class TTAutoV4 extends TTTeleOp {
     @Override
     public void loop() {
 
-      //*********Start State Machine
+        //*********Start State Machine
         switch (currentState) {
             //Tasks are broken down to finite STATES. We will increment to to next state after successful
             // completion of each state.
@@ -162,13 +165,32 @@ public class TTAutoV4 extends TTTeleOp {
             case 1:
                 // Shoot the ball
                 shooter.setPower(.6);
-                if ((shooter.getCurrentPosition()-shooterInit)>2500) {
+                if ((shooter.getCurrentPosition() - shooterInit) > 3750) {
                     shooter.setPower(0);
+                    shooterInit = shooter.getCurrentPosition();
                     currentState++;
                 }
                 break;
 
             case 2:
+                ball_dropper.setPosition(0);
+                if (ball_dropper.getPosition() == 0) {
+                    currentState++;
+                    ballshootTimeInit = System.currentTimeMillis();
+                }
+                break;
+            case 3:
+                if (System.currentTimeMillis() - ballshootTimeInit > 2000) {
+                    shooter.setPower(.6);
+                    if ((shooter.getCurrentPosition() - shooterInit) > 2500) {
+                        shooter.setPower(0);
+                        shooterInit = shooter.getCurrentPosition();
+                        currentState++;
+                    }
+                }
+
+                break;
+            case 4:
                 // GO straight for a fixed distance at slow speed to line up
                 // for turn towards 1st white line.
                 if (driveWithEncoders(.3, .3, 500, 500)) {
@@ -176,7 +198,7 @@ public class TTAutoV4 extends TTTeleOp {
                 }
                 break;
 
-            case 3:
+            case 5:
                 //Turn 35-40 degree towards the first beacon's white line
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
@@ -188,36 +210,36 @@ public class TTAutoV4 extends TTTeleOp {
                 }
                 break;
 
-            case 4:
+            case 6:
                 // GO straight for a fixed distance at high speed.
                 if (driveWithEncoders(.8, .8, 3800, 3800)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    recoveryCount =0;
+                    recoveryCount = 0;
                 }
                 break;
 
-            case 5:
+            case 7:
 
-            switch (driveToColor(.25, .25, Colors.WHITE, 2000)) {
-                case 1:
-                    //reached white line..skip over next 2 RECOVERY steps
-                    currentState = currentState+2;
-                case 2:
-                    recoveryCount++;
-                    //Lost...take next 2 RECOVERY steps
-                    if (recoveryCount>1){
-                        currentState=99;
-                    }else{
-                        currentState++;
-                    }
+                switch (driveToColor(.25, .25, Colors.WHITE, 2000)) {
+                    case 1:
+                        //reached white line..skip over next 2 RECOVERY steps
+                        currentState = currentState + 2;
+                    case 2:
+                        recoveryCount++;
+                        //Lost...take next 2 RECOVERY steps
+                        if (recoveryCount > 2) {
+                            currentState = 99;
+                        } else {
+                            currentState++;
+                        }
 
-                default:
-                    break;
-            }
+                    default:
+                        break;
+                }
 
-            case 6:
+            case 8:
 
                 // RECOVERY STEP -1
                 // Come back
@@ -226,36 +248,37 @@ public class TTAutoV4 extends TTTeleOp {
                 }
                 break;
 
-            case 7:
+            case 9:
                 // RECOVERY STEP -2
                 // Turn another 10 degrees
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
                 if (gyroPointTurn(TURN_POWER, turnDirection, 10)) {
-                    currentState = currentState-2;;
+                    currentState = currentState - 2;
+                    ;
                 }
                 break;
 
-            case 8:
+            case 10:
                 // Come back
                 if (driveWithEncoders(-.2, -.2, 50, 50)) {
                     currentState++;
                 }
                 break;
 
-            case 9:
+            case 11:
                 // TODO: Red>>Turn Right(-,+), Blue>>Turn Left(+,-)
-                if (allianceColor == Colors.RED){
+                if (allianceColor == Colors.RED) {
                     if (driveToODS(-.25, .25, .2, 2000)) {
                         currentState++;
                     }
-                } else{
+                } else {
                     if (driveToODS(.25, -.25, .2, 2000)) {
                         currentState++;
                     }
                 }
                 break;
 
-            case 10:
+            case 12:
                 // go touch the wall facing 1st beacon
                 if (driveToTouch(.2, .2)) {
                     currentState++;
@@ -267,39 +290,39 @@ public class TTAutoV4 extends TTTeleOp {
 
             //TODO: First Button Push
             //**************************************
-            case 11:
+            case 13:
                 pushBeacon();
-                if (pushSuccessful()){
-                   //Push is successful..continue with usual path. skip over next 2 steps.
-                    currentState= currentState+3;
-                }else if (runtime.time() > 2500) {
+                if (pushSuccessful()) {
+                    //Push is successful..continue with usual path. skip over next 2 steps.
+                    currentState = currentState + 3;
+                } else if (runtime.time() > 2500) {
                     // Timed out.. take 2 additional RETRY steps - back and forward
-                    if (recoveryCount<3){
+                    if (recoveryCount < 3) {
                         recoveryCount++;
                         currentState++;
-                    }else{
-                        currentState= currentState+3;
+                    } else {
+                        currentState = currentState + 3;
                     }
                 }
                 break;
             //**************************************
 
-            case 12:
+            case 14:
                 //Beacon 1 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.4, -.4, 500, 500)) {
                     currentState++;
                 }
                 break;
 
-            case 13:
+            case 15:
                 //Beacon 1 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
-                    currentState = currentState-2 ;
+                    currentState = currentState - 2;
                     runtime.reset();
                 }
                 break;
 
-            case 14:
+            case 16:
                 // Come back after Beacon 1 push
                 initBeaconPusher();
                 //TODO: ??? Not sure about encoder count to come back
@@ -309,7 +332,7 @@ public class TTAutoV4 extends TTTeleOp {
                 }
                 break;
 
-            case 15:
+            case 17:
                 //Turn 90 degree towards second beacon
                 //TODO: Blue>>Left , Red>>Right
                 turnDirection = (allianceColor == Colors.RED) ? Sides.RIGHT : Sides.LEFT;
@@ -321,22 +344,22 @@ public class TTAutoV4 extends TTTeleOp {
                 }
                 break;
 
-            case 16:
+            case 18:
                 // GO straight toward 2nd beacon at high speed.
                 if (driveWithEncoders(.8, .8, 2500, 2500)) {
                     currentState++;
                 }
                 break;
 
-            case 17:
-                if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
+            case 19:
+                if (driveToColor(.25, .25, Colors.WHITE, 8000) == 1) {
                     currentState++;
                 }
 
                 break;
 
             //TODO: Add corrections....Before turn
-            case 18:
+            case 20:
                 allianceSpecific = (allianceColor == Colors.RED) ? 80 : 70;
                 if (driveWithEncoders(-.2, -.2, allianceSpecific, allianceSpecific)) {
                     currentState++;
@@ -344,11 +367,11 @@ public class TTAutoV4 extends TTTeleOp {
 
                 break;
 
-            case 19:
+            case 21:
                 // Turn to the 2nd Beacon
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
-                if (gyroPointTurn(.5, turnDirection, 80)||(ods_front.getLightDetected()>.19)) {
+                if (gyroPointTurn(.5, turnDirection, 80) || (ods_front.getLightDetected() > .19)) {
                     front_left.setPower(0);
                     front_right.setPower(0);
                     isRunning = false;
@@ -365,14 +388,13 @@ public class TTAutoV4 extends TTTeleOp {
                 if (driveToODS(.3, -.3, .2, 2000)) {
                     currentState++;
                 }*/
-           // }
+                // }
 
                 break;
 
 
-
             //TODO: Add corrections.... After turn
-            case 20:
+            case 22:
 
                 //if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
                 currentState++;
@@ -382,10 +404,10 @@ public class TTAutoV4 extends TTTeleOp {
                 break;
 
 
-            case 21:
+            case 23:
                 if (driveToTouch(.2, .2)) {
                     currentState++;
-                    recoveryCount =0;
+                    recoveryCount = 0;
                     IsPushed = false;
                     runtime.reset();
                 }
@@ -394,45 +416,45 @@ public class TTAutoV4 extends TTTeleOp {
 
             //TODO: 2nd Button Push
             //***************************************************
-            case 22:
+            case 24:
                 pushBeacon();
-                if (pushSuccessful()){
+                if (pushSuccessful()) {
                     //Push is successful..continue with usual path. skip over next 2 steps.
-                    currentState= currentState+3;
-                }else if (runtime.time() > 2500) {
+                    currentState = currentState + 3;
+                } else if (runtime.time() > 2500) {
                     // Timed out.. take 2 additional RETRY steps - back and forward
                     recoveryCount++;
-                    if (recoveryCount<3){
+                    if (recoveryCount < 3) {
                         currentState++;
-                    }else{
-                        currentState= currentState+3;
+                    } else {
+                        currentState = currentState + 3;
                     }
                 }
                 break;
             //***************************************************
 
-            case 23:
+            case 25:
                 //Beacon 2 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.2, -.2, 500, 500)) {
                     currentState++;
                 }
                 break;
 
-            case 24:
+            case 26:
                 //Beacon 2 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
-                    currentState = currentState-2 ;
+                    currentState = currentState - 2;
                     runtime.reset();
                 }
                 break;
 
-            case 25:
+            case 27:
                 initBeaconPusher();
                 if (driveWithEncoders(-.3, -.3, 650, 650)) {
                     currentState++;
                 }
                 break;
-            case 26:
+            case 28:
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
                 if (gyroPointTurn(.5, turnDirection, 120)) {
@@ -442,7 +464,7 @@ public class TTAutoV4 extends TTTeleOp {
                 }
 
                 break;
-            case 27:
+            case 29:
                 //5000
                 if (driveWithEncoders(.8, .8, 4700, 4700)) {
                     currentState++;
@@ -469,17 +491,17 @@ public class TTAutoV4 extends TTTeleOp {
         telemetry.addData("Left Color", getLeftBeaconColor());
         telemetry.addData("state: ", currentState);
 
-       if (cs.isColorUpdate()) {
-           telemetry.addData("red: ", cs.red());
-           telemetry.addData("green: ", cs.green());
-           telemetry.addData("blue: ", cs.blue());
+        if (cs.isColorUpdate()) {
+            telemetry.addData("red: ", cs.red());
+            telemetry.addData("green: ", cs.green());
+            telemetry.addData("blue: ", cs.blue());
         }
         //telemetry.addData("ods_front", ods_front.getLightDetected());
         //telemetry.addData("pushSuccess: ", pushSuccessful());
 
 
         // Write data to log file..if enabled and log duration has reached
-        if ((logEnabled) && ((System.currentTimeMillis()- logTime)>100)){
+        if ((logEnabled) && ((System.currentTimeMillis() - logTime) > 100)) {
             dl.addField(String.valueOf(loopCounter));
             dl.addField(String.valueOf(currentState));
             dl.addField(String.valueOf(front_left.getCurrentPosition()));
@@ -514,7 +536,7 @@ public class TTAutoV4 extends TTTeleOp {
     @Override
     public void stop() {
         //Close data logger and Adafruit
-        if (logEnabled){
+        if (logEnabled) {
             dl.closeDataLogger();
         }
 
@@ -589,9 +611,9 @@ public class TTAutoV4 extends TTTeleOp {
         // So, Target will be reached as soon as Error is below threshold
 
         progress = Math.abs(gyro.getIntegratedZValue() - startDirection);
-        error = angle-progress;
-        correction = Range.clip(error*0.1, 0,1); // P coefficient = .1
-        power = power*correction;
+        error = angle - progress;
+        correction = Range.clip(error * 0.1, 0, 1); // P coefficient = .1
+        power = power * correction;
 
         if (turnDirection == Sides.LEFT) {
             front_left.setPower(-power);
@@ -602,7 +624,7 @@ public class TTAutoV4 extends TTTeleOp {
             front_right.setPower(-power);
         }
         // Target is reached if error is within threshold.. (2 degrees)
-        if (error<=2) {
+        if (error <= 2) {
             front_left.setPower(0);
             front_right.setPower(0);
             isRunning = false;
@@ -610,12 +632,13 @@ public class TTAutoV4 extends TTTeleOp {
         }
         return false;
     }
+
     //driveToTouch:
     //==================
     boolean driveToTouch
-                        (double left_power
-                        , double right_power
-                        )
+    (double left_power
+            , double right_power
+    )
 
     {
         if (touch_left.isPressed()) {
@@ -669,11 +692,11 @@ public class TTAutoV4 extends TTTeleOp {
         }
         return l_beacon;
     }
+
     //pushBeacon:
     //==================
     boolean pushBeacon() {
-        if(!IsPushed)
-        {
+        if (!IsPushed) {
             if (getRightBeaconColor() == allianceColor) {
                 //Push Right Button
                 pusher_right.setPosition(125.0 / 255.0);
@@ -693,9 +716,9 @@ public class TTAutoV4 extends TTTeleOp {
 
     //pushSuccessful:
     //==================
-    boolean pushSuccessful(){
+    boolean pushSuccessful() {
         //Both Beacon Color matches alliance color
-        if ((getRightBeaconColor() == allianceColor)&&(getLeftBeaconColor()== allianceColor)) {
+        if ((getRightBeaconColor() == allianceColor) && (getLeftBeaconColor() == allianceColor)) {
             return true;
         }
         return false;
@@ -725,11 +748,11 @@ public class TTAutoV4 extends TTTeleOp {
     //================
     //
     int driveToColor
-                    (double left_power
-                    , double right_power
-                    , Colors targetColor
-                    , int encoderMaxCount
-                    )
+    (double left_power
+            , double right_power
+            , Colors targetColor
+            , int encoderMaxCount
+    )
 
     {
         if (!isRunning) {
@@ -751,8 +774,8 @@ public class TTAutoV4 extends TTTeleOp {
             return 1;
         }
 
-        if ((Math.abs(front_left.getCurrentPosition()-leftStartPosition)>encoderMaxCount)||
-        (Math.abs(front_right.getCurrentPosition()-rightStartPosition)>encoderMaxCount)) {
+        if ((Math.abs(front_left.getCurrentPosition() - leftStartPosition) > encoderMaxCount) ||
+                (Math.abs(front_right.getCurrentPosition() - rightStartPosition) > encoderMaxCount)) {
             front_left.setPower(0);
             front_right.setPower(0);
             isRunning = false;
@@ -766,11 +789,11 @@ public class TTAutoV4 extends TTTeleOp {
     //================
     //
     boolean driveToODS
-            (double left_power
-                    , double right_power
-                    , double odsValue
-                    , int encoderMaxCount
-            )
+    (double left_power
+            , double right_power
+            , double odsValue
+            , int encoderMaxCount
+    )
 
     {
         //We are straight, reading 0 heading
@@ -789,7 +812,6 @@ public class TTAutoV4 extends TTTeleOp {
         // Return the status.
         return false;
     }
-
 
 
     //Set both drive wheel encoder to run, if the mode is appropriate.
@@ -837,7 +859,7 @@ public class TTAutoV4 extends TTTeleOp {
 
         if (front_left != null) {
             // Has the encoder reached the specified values?
-            if (Math.abs(front_left.getCurrentPosition()-leftStartPosition) >= count) {
+            if (Math.abs(front_left.getCurrentPosition() - leftStartPosition) >= count) {
                 // Set the status to a positive indication.
                 l_return = true;
             }
@@ -852,7 +874,7 @@ public class TTAutoV4 extends TTTeleOp {
 
         if (front_right != null) {
             // Has the encoder reached the specified values?
-            if (Math.abs(front_right.getCurrentPosition()-rightStartPosition) >= count) {
+            if (Math.abs(front_right.getCurrentPosition() - rightStartPosition) >= count) {
                 // Set the status to a positive indication.
                 l_return = true;
             }
@@ -860,28 +882,30 @@ public class TTAutoV4 extends TTTeleOp {
         // Return the status.
         return l_return;
     }
+
     public boolean initBeaconPusher() {
         pusher_left.setPosition(80.0 / 255.0);
         pusher_right.setPosition(80.0 / 255.0);
         return true;
     }
+
     /***
-     *   enable color sensors by re-registering callbacks
+     * enable color sensors by re-registering callbacks
      */
     public void colorEnable() {
-        if(colorSensorsDisabled) {
+        if (colorSensorsDisabled) {
             if (underColorCallback != null)
                 underColorController.registerForI2cPortReadyCallback(underColorCallback, mrcolor_under.getPort());
             if (frontColorCallback != null)
-               frontColorController.registerForI2cPortReadyCallback(frontColorCallback, mrcolor_front.getPort());
+                frontColorController.registerForI2cPortReadyCallback(frontColorCallback, mrcolor_front.getPort());
         }
         colorSensorsDisabled = false;
     }
+
     /***
-     *   disable color sensors by de-registering callbacks
+     * disable color sensors by de-registering callbacks
      */
-    public void colorDisable()
-    {
+    public void colorDisable() {
         if (!colorSensorsDisabled) {
             underColorController.deregisterForPortReadyCallback(mrcolor_under.getPort());
             frontColorController.deregisterForPortReadyCallback(mrcolor_front.getPort());

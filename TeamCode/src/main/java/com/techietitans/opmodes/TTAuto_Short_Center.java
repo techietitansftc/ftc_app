@@ -32,6 +32,7 @@ public class TTAuto_Short_Center extends TTTeleOp {
     int recoveryCount=0;
     int loopCounter =0;
     int shooterInit=0;
+    long ballshootTimeInit = 0;
 
 
     // Colors used in Alliance, resQ beacon and line
@@ -168,7 +169,8 @@ public class TTAuto_Short_Center extends TTTeleOp {
                 break;
             case 2:
                 // GO straight for a fixed distance
-                if (driveWithEncoders(.3, .3, 333, 333)) {
+                // prev = 333
+                if (driveWithEncoders(.3, .3, 666, 666)) {
                     currentState++;
                 }
                 break;
@@ -192,15 +194,34 @@ public class TTAuto_Short_Center extends TTTeleOp {
                 break;
 
             case 5:
-                // Shoot....
+                // Shoot the ball
                 shooter.setPower(.6);
-                if ((shooter.getCurrentPosition()-shooterInit)>2500) {
+                if ((shooter.getCurrentPosition() - shooterInit) > 3750) {
                     shooter.setPower(0);
+                    shooterInit = shooter.getCurrentPosition();
                     currentState++;
                 }
                 break;
 
             case 6:
+                ball_dropper.setPosition(0);
+                if (ball_dropper.getPosition() == 0) {
+                    currentState++;
+                    ballshootTimeInit = System.currentTimeMillis();
+                }
+                break;
+            case 7:
+                if (System.currentTimeMillis() - ballshootTimeInit > 2000) {
+                    shooter.setPower(.6);
+                    if ((shooter.getCurrentPosition() - shooterInit) > 2500) {
+                        shooter.setPower(0);
+                        shooterInit = shooter.getCurrentPosition();
+                        currentState++;
+                    }
+                }
+                break;
+
+            case 8:
                 // GO straight to shoot..
                 if (driveWithEncoders(.6, .6, 4500,4500)) {
                     currentState++;

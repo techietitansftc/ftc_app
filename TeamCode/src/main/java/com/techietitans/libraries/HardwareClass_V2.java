@@ -45,6 +45,8 @@ public abstract class HardwareClass_V2 extends OpMode {
     protected static I2cController.I2cPortReadyCallback underColorCallback;
     protected static I2cController.I2cPortReadyCallback frontColorCallback;
 
+    protected static Servo ball_dropper;
+
 
 
 
@@ -60,7 +62,6 @@ public abstract class HardwareClass_V2 extends OpMode {
         mrcolor_front.setI2cAddress(frontColorAddress);
         frontColorController = mrcolor_front.getI2cController();
         frontColorCallback =  frontColorController.getI2cPortReadyCallback(mrcolor_front.getPort());
-
 
         try {
             front_left = hardwareMap.dcMotor.get("front_left");
@@ -168,6 +169,14 @@ public abstract class HardwareClass_V2 extends OpMode {
             DbgLog.msg(p_exeception.getLocalizedMessage());
             touch_right = null;
         }
+
+        try {
+            ball_dropper = hardwareMap.servo.get("ball_dropper");
+        } catch (Exception p_exeception) {
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+            ball_dropper = null;
+        }
+
 
 
     }

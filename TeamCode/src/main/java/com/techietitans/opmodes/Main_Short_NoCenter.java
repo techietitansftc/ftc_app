@@ -33,6 +33,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
     int loopCounter =0;
     int shooterInit=0;
     int allianceSpecific;
+    long ballshootTimeInit = 0;
 
 
     // Colors used in Alliance, resQ beacon and line
@@ -162,13 +163,32 @@ public class Main_Short_NoCenter extends TTTeleOp {
             case 1:
                 // Shoot the ball
                 shooter.setPower(.6);
-                if ((shooter.getCurrentPosition()-shooterInit)>2500) {
+                if ((shooter.getCurrentPosition() - shooterInit) > 3750) {
                     shooter.setPower(0);
+                    shooterInit = shooter.getCurrentPosition();
                     currentState++;
                 }
                 break;
 
             case 2:
+                ball_dropper.setPosition(0);
+                if (ball_dropper.getPosition() == 0) {
+                    currentState++;
+                    ballshootTimeInit = System.currentTimeMillis();
+                }
+                break;
+            case 3:
+                if (System.currentTimeMillis() - ballshootTimeInit > 2000) {
+                    shooter.setPower(.6);
+                    if ((shooter.getCurrentPosition() - shooterInit) > 2500) {
+                        shooter.setPower(0);
+                        shooterInit = shooter.getCurrentPosition();
+                        currentState++;
+                    }
+                }
+                break;
+
+            case 4:
                 // GO straight for a fixed distance at slow speed to line up
                 // for turn towards 1st white line.
                 if (driveWithEncoders(.3, .3, 500, 500)) {
@@ -176,7 +196,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 3:
+            case 5:
                 //Turn 35-40 degree towards the first beacon's white line
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
@@ -188,7 +208,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 4:
+            case 6:
                 // GO straight for a fixed distance at high speed.
                 if (driveWithEncoders(.8, .8, 3800, 3800)) {
                     currentState++;
@@ -198,7 +218,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 5:
+            case 7:
 
             switch (driveToColor(.25, .25, Colors.WHITE, 2000)) {
                 case 1:
@@ -217,7 +237,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                     break;
             }
 
-            case 6:
+            case 8:
                 // RECOVERY STEP -1
                 // Come back
                 if (driveWithEncoders(-.4, -.4, 2000, 2000)) {
@@ -225,7 +245,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 7:
+            case 9:
                 // RECOVERY STEP -2
                 // Turn another 10 degrees
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
@@ -233,7 +253,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                     currentState = currentState-2;;
                 }
                 break;
-            case 8:
+            case 10:
                 // TODO: Red>>Turn Right(-,+), Blue>>Turn Left(+,-)
                 if (allianceColor == Colors.RED){
                     if (driveToODS(-.25, .25, .2, 2000)) {
@@ -246,7 +266,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 9:
+            case 11:
                 // go touch the wall facing 1st beacon
                 if (driveToTouch(.2, .2)) {
                     currentState++;
@@ -258,7 +278,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
             //TODO: First Button Push
             //**************************************
-            case 10:
+            case 12:
                 pushBeacon();
                 if (pushSuccessful()){
                    //Push is successful..continue with usual path. skip over next 2 steps.
@@ -275,14 +295,14 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
             //**************************************
 
-            case 11:
+            case 13:
                 //Beacon 1 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.4, -.4, 500, 500)) {
                     currentState++;
                 }
                 break;
 
-            case 12:
+            case 14:
                 //Beacon 1 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
                     currentState = currentState-2 ;
@@ -290,7 +310,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 13:
+            case 15:
                 // Come back after Beacon 1 push
                 initBeaconPusher();
                 //TODO: ??? Not sure about encoder count to come back
@@ -300,7 +320,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 14:
+            case 16:
                 //Turn 90 degree towards second beacon
                 //TODO: Blue>>Left , Red>>Right
                 turnDirection = (allianceColor == Colors.RED) ? Sides.RIGHT : Sides.LEFT;
@@ -312,14 +332,14 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 15:
+            case 17:
                 // GO straight toward 2nd beacon at high speed.
                 if (driveWithEncoders(.8, .8, 2500, 2500)) {
                     currentState++;
                 }
                 break;
 
-            case 16:
+            case 18:
                 if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
                     currentState++;
                 }
@@ -327,7 +347,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
 
             //TODO: Add corrections....Before turn
-            case 17:
+            case 19:
                 allianceSpecific = (allianceColor == Colors.RED) ? 90 : 65;
                 if (driveWithEncoders(-.2, -.2, allianceSpecific, allianceSpecific)) {
                     currentState++;
@@ -335,7 +355,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
                 break;
 
-            case 18:
+            case 20:
                 // Turn to the 2nd Beacon
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
@@ -363,7 +383,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
 
             //TODO: Add corrections.... After turn
-            case 19:
+            case 21:
 
                 //if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
                 currentState++;
@@ -373,7 +393,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
 
 
-            case 20:
+            case 22:
                 if (driveToTouch(.2, .2)) {
                     currentState++;
                     recoveryCount =0;
@@ -385,7 +405,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
             //TODO: 2nd Button Push
             //***************************************************
-            case 21:
+            case 23:
                 pushBeacon();
                 if (pushSuccessful()){
                     //Push is successful..continue with usual path. skip over next 2 steps.
@@ -402,14 +422,14 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
             //***************************************************
 
-            case 22:
+            case 24:
                 //Beacon 2 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.2, -.2, 500, 500)) {
                     currentState++;
                 }
                 break;
 
-            case 23:
+            case 25:
                 //Beacon 2 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
                     currentState = currentState-2 ;
@@ -417,7 +437,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 24:
+            case 26:
                 initBeaconPusher();
                 if (driveWithEncoders(-.3, -.3, 650, 650)) {
                     currentState++;
