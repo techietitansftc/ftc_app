@@ -178,7 +178,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 20)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 20 : 35)) {
                     currentState++;
                 }
                 break;
@@ -230,14 +230,14 @@ public class TTAuto_Short_Side extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, 85)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 85 : 65)) {
                     currentState++;
                 }
                 break;
 
             case 10:
                 // GO straight to Corner Ramp
-                if (driveWithEncoders(.7, .7, 4750,4750)) {
+                if (driveWithEncoders(.5, .5, 4750,4750)) {
                     currentState++;
                 }
                 break;

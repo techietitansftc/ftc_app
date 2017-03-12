@@ -270,10 +270,12 @@ public class TTAutoV4 extends TTTeleOp {
                 if (allianceColor == Colors.RED) {
                     if (driveToODS(-.25, .25, .2, 2000)) {
                         currentState++;
+                        runtime.reset();
                     }
                 } else {
                     if (driveToODS(.25, -.25, .2, 2000)) {
                         currentState++;
+                        runtime.reset();
                     }
                 }
                 break;
@@ -285,6 +287,9 @@ public class TTAutoV4 extends TTTeleOp {
                     recoveryCount = 0;
                     runtime.reset();
                     gyro.resetZAxisIntegrator();
+                }
+                if (runtime.time()>3000){
+                    currentState = currentState+2;
                 }
                 break;
 
@@ -312,6 +317,7 @@ public class TTAutoV4 extends TTTeleOp {
                 if (driveWithEncoders(-.4, -.4, 500, 500)) {
                     initBeaconPusher();
                     currentState++;
+                    runtime.reset();
                 }
                 break;
 
@@ -320,6 +326,9 @@ public class TTAutoV4 extends TTTeleOp {
                 if (driveToTouch(.2, .2)) {
                     currentState = currentState - 2;
                     runtime.reset();
+                }
+                if (runtime.time()>3000){
+                    currentState++;
                 }
                 break;
 
@@ -644,6 +653,13 @@ public class TTAutoV4 extends TTTeleOp {
     )
 
     {
+        if (!isRunning) {
+            //
+            startDirection = gyro.getIntegratedZValue();
+            isRunning = true;
+        }
+
+
         if (touch_left.isPressed()) {
             front_left.setPower(0);
         } else {
