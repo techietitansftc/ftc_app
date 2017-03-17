@@ -84,6 +84,12 @@ public class AdaFruitTest extends HardwareClass_V2 {
 
        // shooter.setPower(.6);
 
+        if (touch_left.isPressed()) {
+            mrcolor_under.enableLed(true);
+        }
+        if (touch_right.isPressed()) {
+            mrcolor_under.enableLed(false);
+        }
 
 
 //        if (!gyro.isCalibrating()) {

@@ -62,8 +62,8 @@ public class TTAutoV4 extends TTTeleOp {
     //*** Autonomous constants
     public static final int RED_LINE = 2;
     public static final int BLUE_LINE = 2;
-    public static final int WHITE_LINE = 8;
-    public static final int WHITE_CLOSENESS = 2;
+    public static final int WHITE_LINE = 10;
+    public static final int WHITE_CLOSENESS = 5;
 
     public static final double TURN_POWER = 0.45;
     public static final double NAV_HIGH_POWER = 0.7;
@@ -203,7 +203,7 @@ public class TTAutoV4 extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 55 : 40)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 55 : 37)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -260,7 +260,7 @@ public class TTAutoV4 extends TTTeleOp {
 
             case 10:
                 // Come back
-                if (driveWithEncoders(-.2, -.2, 50, 50)) {
+                if (driveWithEncoders(-.2, -.2, 55, 55)) {
                     currentState++;
                 }
                 break;
@@ -318,6 +318,7 @@ public class TTAutoV4 extends TTTeleOp {
                     initBeaconPusher();
                     currentState++;
                     runtime.reset();
+                    IsPushed = false;
                 }
                 break;
 
@@ -337,7 +338,7 @@ public class TTAutoV4 extends TTTeleOp {
                 //TODO: At State.. Red 650, Blue 620
                 initBeaconPusher();
                 //TODO: ??? Not sure about encoder count to come back
-                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 630;
+                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 650;
                 if (driveWithEncoders(-.3, -.3, allianceSpecific, allianceSpecific)) {
                     currentState++;
                 }
@@ -347,7 +348,7 @@ public class TTAutoV4 extends TTTeleOp {
                 //Turn 90 degree towards second beacon
                 //TODO: Blue>>Left , Red>>Right
                 turnDirection = (allianceColor == Colors.RED) ? Sides.RIGHT : Sides.LEFT;
-                allianceSpecific = (allianceColor == Colors.RED) ? 85 : 82;
+                allianceSpecific = (allianceColor == Colors.RED) ? 85 : 85;
                 if (gyroPointTurn(.3, turnDirection, allianceSpecific)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -363,7 +364,7 @@ public class TTAutoV4 extends TTTeleOp {
                 break;
 
             case 19:
-                if (driveToColor(.25, .25, Colors.WHITE, 8000) == 1) {
+                if (driveToColor(.15, .15, Colors.WHITE, 8000) == 1) {
                     currentState++;
                 }
 
@@ -371,7 +372,7 @@ public class TTAutoV4 extends TTTeleOp {
 
             //TODO: Add corrections....Before turn
             case 20:
-                allianceSpecific = (allianceColor == Colors.RED) ? 80 : 70;
+                allianceSpecific = (allianceColor == Colors.RED) ? 80 : 40;
                 if (driveWithEncoders(-.2, -.2, allianceSpecific, allianceSpecific)) {
                     currentState++;
                 }
@@ -450,6 +451,7 @@ public class TTAutoV4 extends TTTeleOp {
                     initBeaconPusher();
                     currentState++;
                 }
+                IsPushed = false;
                 break;
 
             case 26:
