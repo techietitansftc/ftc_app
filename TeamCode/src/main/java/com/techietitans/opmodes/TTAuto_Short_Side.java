@@ -237,7 +237,7 @@ public class TTAuto_Short_Side extends TTTeleOp {
 
             case 10:
                 // GO straight to Corner Ramp
-                if (driveWithEncoders(.5, .5, 4750,4750)) {
+                if (driveWithEncoders(.5, .5, 4600,4600)) {
                     currentState++;
                 }
                 break;

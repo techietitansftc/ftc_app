@@ -62,8 +62,8 @@ public class Main_Short_NoCenter extends TTTeleOp {
     //*** Autonomous constants
     public static final int RED_LINE = 2;
     public static final int BLUE_LINE = 2;
-    public static final int WHITE_LINE = 8;
-    public static final int WHITE_CLOSENESS = 2;
+    public static final int WHITE_LINE = 10;
+    public static final int WHITE_CLOSENESS = 5;
 
     public static final double TURN_POWER = 0.45;
     public static final double NAV_HIGH_POWER = 0.7;
@@ -86,6 +86,8 @@ public class Main_Short_NoCenter extends TTTeleOp {
         cs = new AdaFruitCS(hardwareMap, "adaColor", 2 * 0x29);
         cs.initColorSensor();
         isRunning = false;
+
+        ball_dropper.setPosition(90.0 / 255.0);
     }
 
     //*****************************************************************************
@@ -201,7 +203,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
 
-                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 50 : 40)) {
+                if (gyroPointTurn(.3, turnDirection, allianceColor == Colors.RED ? 55 : 37)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -253,20 +255,30 @@ public class Main_Short_NoCenter extends TTTeleOp {
                     currentState = currentState-2;;
                 }
                 break;
+
             case 10:
-                // TODO: Red>>Turn Right(-,+), Blue>>Turn Left(+,-)
-                if (allianceColor == Colors.RED){
-                    if (driveToODS(-.25, .25, .2, 2000)) {
-                        currentState++;
-                    }
-                } else{
-                    if (driveToODS(.25, -.25, .2, 2000)) {
-                        currentState++;
-                    }
+                // Come back
+                if (driveWithEncoders(-.2, -.2, 55, 55)) {
+                    currentState++;
                 }
                 break;
 
             case 11:
+                // TODO: Red>>Turn Right(-,+), Blue>>Turn Left(+,-)
+                if (allianceColor == Colors.RED){
+                    if (driveToODS(-.25, .25, .2, 2000)) {
+                        currentState++;
+                        runtime.reset();
+                    }
+                } else{
+                    if (driveToODS(.25, -.25, .2, 2000)) {
+                        currentState++;
+                        runtime.reset();
+                    }
+                }
+                break;
+
+            case 12:
                 // go touch the wall facing 1st beacon
                 if (driveToTouch(.2, .2)) {
                     currentState++;
@@ -274,11 +286,14 @@ public class Main_Short_NoCenter extends TTTeleOp {
                     runtime.reset();
                     gyro.resetZAxisIntegrator();
                 }
+                if (runtime.time()>3000){
+                    currentState = currentState+2;
+                }
                 break;
 
             //TODO: First Button Push
             //**************************************
-            case 12:
+            case 13:
                 pushBeacon();
                 if (pushSuccessful()){
                    //Push is successful..continue with usual path. skip over next 2 steps.
@@ -295,36 +310,43 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
             //**************************************
 
-            case 13:
+            case 14:
                 //Beacon 1 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.4, -.4, 500, 500)) {
+                    initBeaconPusher();
                     currentState++;
+                    runtime.reset();
+                    IsPushed = false;
                 }
                 break;
 
-            case 14:
+            case 15:
                 //Beacon 1 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
                     currentState = currentState-2 ;
                     runtime.reset();
                 }
-                break;
-
-            case 15:
-                // Come back after Beacon 1 push
-                initBeaconPusher();
-                //TODO: ??? Not sure about encoder count to come back
-                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 620;
-                if (driveWithEncoders(-.3, -.3, allianceSpecific, allianceSpecific)) {
+                if (runtime.time()>3000){
                     currentState++;
                 }
                 break;
 
             case 16:
+                // Come back after Beacon 1 push
+                //TODO: At State.. Red 650, Blue 620
+                initBeaconPusher();
+                //TODO: ??? Not sure about encoder count to come back
+                allianceSpecific = (allianceColor == Colors.RED) ? 650 : 650;
+                if (driveWithEncoders(-.3, -.3, allianceSpecific, allianceSpecific)) {
+                    currentState++;
+                }
+                break;
+
+            case 17:
                 //Turn 90 degree towards second beacon
                 //TODO: Blue>>Left , Red>>Right
                 turnDirection = (allianceColor == Colors.RED) ? Sides.RIGHT : Sides.LEFT;
-                allianceSpecific = (allianceColor == Colors.RED) ? 85 : 82;
+                allianceSpecific = (allianceColor == Colors.RED) ? 85 : 85;
                 if (gyroPointTurn(.3, turnDirection, allianceSpecific)) {
                     currentState++;
                     front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -332,34 +354,34 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 }
                 break;
 
-            case 17:
+            case 18:
                 // GO straight toward 2nd beacon at high speed.
                 if (driveWithEncoders(.8, .8, 2500, 2500)) {
                     currentState++;
                 }
                 break;
 
-            case 18:
-                if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
+            case 19:
+                if (driveToColor(.15, .15, Colors.WHITE, 8000) == 1) {
                     currentState++;
                 }
 
                 break;
 
             //TODO: Add corrections....Before turn
-            case 19:
-                allianceSpecific = (allianceColor == Colors.RED) ? 90 : 65;
+            case 20:
+                allianceSpecific = (allianceColor == Colors.RED) ? 80 : 40;
                 if (driveWithEncoders(-.2, -.2, allianceSpecific, allianceSpecific)) {
                     currentState++;
                 }
 
                 break;
 
-            case 20:
+            case 21:
                 // Turn to the 2nd Beacon
                 //TODO: Blue>>Right , Red>>Left
                 turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
-                if (gyroPointTurn(.5, turnDirection, 80)||(ods_front.getLightDetected()>.19)) {
+                if (gyroPointTurn(.5, turnDirection, 80) || (ods_front.getLightDetected() > .19)) {
                     front_left.setPower(0);
                     front_right.setPower(0);
                     isRunning = false;
@@ -383,7 +405,7 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
 
             //TODO: Add corrections.... After turn
-            case 21:
+            case 22:
 
                 //if (driveToColor(.25, .25, Colors.WHITE, 8000)==1) {
                 currentState++;
@@ -393,10 +415,10 @@ public class Main_Short_NoCenter extends TTTeleOp {
                 break;
 
 
-            case 22:
+            case 23:
                 if (driveToTouch(.2, .2)) {
                     currentState++;
-                    recoveryCount =0;
+                    recoveryCount = 0;
                     IsPushed = false;
                     runtime.reset();
                 }
@@ -405,44 +427,54 @@ public class Main_Short_NoCenter extends TTTeleOp {
 
             //TODO: 2nd Button Push
             //***************************************************
-            case 23:
+            case 24:
                 pushBeacon();
-                if (pushSuccessful()){
+                if (pushSuccessful()) {
                     //Push is successful..continue with usual path. skip over next 2 steps.
-                    currentState= currentState+3;
-                }else if (runtime.time() > 2500) {
+                    currentState = currentState + 3;
+                } else if (runtime.time() > 2500) {
                     // Timed out.. take 2 additional RETRY steps - back and forward
                     recoveryCount++;
-                    if (recoveryCount<3){
+                    if (recoveryCount < 3) {
                         currentState++;
-                    }else{
-                        currentState= currentState+3;
+                    } else {
+                        currentState = currentState + 3;
                     }
                 }
                 break;
             //***************************************************
 
-            case 24:
+            case 25:
                 //Beacon 2 - RECOVERY STEP 1: go back a little..leave the pusher extended
                 if (driveWithEncoders(-.2, -.2, 500, 500)) {
+                    initBeaconPusher();
                     currentState++;
                 }
+                IsPushed = false;
                 break;
 
-            case 25:
+            case 26:
                 //Beacon 2 - RECOVERY STEP 2: go forward..push again
                 if (driveToTouch(.2, .2)) {
-                    currentState = currentState-2 ;
+                    currentState = currentState - 2;
                     runtime.reset();
                 }
                 break;
 
-            case 26:
+            case 27:
                 initBeaconPusher();
                 if (driveWithEncoders(-.3, -.3, 650, 650)) {
                     currentState++;
                 }
                 break;
+            case 28:
+                //TODO: Blue>>Right , Red>>Left
+                turnDirection = (allianceColor == Colors.RED) ? Sides.LEFT : Sides.RIGHT;
+                if (gyroPointTurn(.5, turnDirection, 120)) {
+                    pusher_left.setPosition(170.0 / 255.0);
+                    pusher_right.setPosition(170.0 / 255.0);
+                    currentState++;
+                }
 
 
             case 99:
